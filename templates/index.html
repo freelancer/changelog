@@ -66,6 +66,23 @@
             </div>
             <div class="col-md-2">
             <fieldset>
+                    <legend>Tags</legend>
+                    <div class="controls category-container">
+                        {% for current in tag_names %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="source" value="{{current}}"
+                                        ng-checked="tag.isChecked('{{ current }}')"
+                                        ng-click="tag.toggle('{{ current }}')">{{current}}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button id="clear-tag-filter" class="btn btn-default col-md-12" type="button"
+                            ng-click="tag.clear()">Show all Tags</button>
+                </fieldset>
+            </div><div class="col-md-2">
+            <fieldset>
                     <legend>Sources</legend>
                     <div class="controls category-container">
                         {% for current in sources %}
