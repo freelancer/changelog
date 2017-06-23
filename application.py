@@ -99,37 +99,39 @@ class EventList(Resource):
 
     def post(self):
         json = json_parser.parse_args()
-        try:
 
-            ev = Event()
-            if json['start_time'] is None:
-                ev.start_time = int(time.time())
-            else:
-                ev.start_time = json['start_time']
-            if json['end_time'] is not None:
-                ev.end_time = json['end_time']
-            if json['source'] is not None:
-                ev.source = json['source']
-            if json['description'] is not None:
-                ev.description = json['description']
+        ev = Event()
+        if json['start_time'] is None:
+            ev.start_time = int(time.time())
+        else:
+            ev.start_time = json['start_time']
+        if json['end_time'] is not None:
+            ev.end_time = json['end_time']
+        if json['source'] is not None:
+            ev.source = json['source']
+        if json['description'] is not None:
+            ev.description = json['description']
 
-            tags = []
-            tags_in_db = db.session.query(Tag).all()
-            for tag_name in json['tags']:
+        tags = []
+        tags_in_db = db.session.query(Tag).all() # ['matchmaking','umer']
+        for post_tag in json['tags']:
+            tag_found = False
+            for db_tag in tags_in_db:
+                if db_tag.name == post_tag:
+                    tag_found = True
+                # tag_found = True
+                tags.append(db_tag)
+            
+            if not tag_found:
                 tg = Tag()
-                tg.name = tag_name
-                if tg.name not in [t.name for t in tags_in_db]:
-                    db.session.add(tg)
-                    db.session.commit()
+                tg.name = post_tag
+                db.session.add(tg)
+                db.session.commit()
 
-            ev.tags = tags
-            db.session.add(ev)
-            db.session.commit()
+        ev.tags = tags
+        db.session.add(ev)
+        db.session.commit()
 
-        except IntegrityError as e:
-            pass  # This happens if we try to add the same event multiple times
-                  # Don't really care about that
-            return 'BAD', 500
         return 'OK', 201
 
     def put(self):
