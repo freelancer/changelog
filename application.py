@@ -119,7 +119,6 @@ class EventList(Resource):
             for db_tag in tags_in_db:
                 if db_tag.name == post_tag:
                     tag_found = True
-                # tag_found = True
                 tags.append(db_tag)
             
             if not tag_found:
@@ -155,12 +154,22 @@ class EventList(Resource):
                 entry.description = json['description']
             if json['tags'] is not None:
                 tags = []
-                for tag_name in json['tags']:
-                    tg = Tag()
-                    tg.name = tag_name
-                    db.session.add(tg)
+                tags_in_db = db.session.query(Tag).all() # ['matchmaking','umer']
+                for post_tag in json['tags']:
+                    tag_found = False
+                    for db_tag in tags_in_db:
+                        if db_tag.name == post_tag:
+                            tag_found = True
+                        tags.append(db_tag)
+                    
+                    if not tag_found:
+                        tg = Tag()
+                        tg.name = post_tag
+                        db.session.add(tg)
+                        db.session.commit()
 
-                entry.tags = tags
+                entry = tags
+
         db.session.commit()
 
 
