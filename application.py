@@ -113,7 +113,32 @@ class EventList(Resource):
                   # Don't really care about that
         return 'OK', 201
 
-    # def put(self):
+    def put(self):
+        json = json_parser.parse_args()
+        result = db.session.query(Event).filter(Event.id == json['id'])
+
+        json_parser.add_argument('start_time', type=int, location='json')
+        json_parser.add_argument('end_time', type=int, location='json')
+        json_parser.add_argument('source', type=unicode, required=True, location='json')
+        json_parser.add_argument('description', type=unicode, required=True, location='json')
+        json_parser.add_argument('tags', type=list, required=True, location='json')
+
+        for entry in result:
+            if json['start_time'] is not None:
+                entry.start_time = json['start_time']
+            if json['end_time'] is not None:
+                entry.end_time = json['end_time']
+            if json['source'] is not None:
+                entry.source = json['source']
+            if json['description'] is not None:
+                entry.description = json['description']
+            if json['tags'] is not None:
+                tags = []
+                for tag in json['tags']:
+                    tg = Tag(tag)
+                    db.session.add(tg)
+                entry.tags = tags
+        db.session.commit()
 
 
 
