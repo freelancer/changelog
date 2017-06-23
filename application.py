@@ -26,19 +26,19 @@ cors = CORS(app, supports_credentials=True)
 
 json_parser = reqparse.RequestParser()
 json_parser.add_argument('unix_timestamp', type=int, required=True, location='json')
-json_parser.add_argument('category', type=unicode, required=True, location='json')
+json_parser.add_argument('source', type=unicode, required=True, location='json')
 json_parser.add_argument('description', type=unicode, required=True, location='json')
 
 query_parser = reqparse.RequestParser()
 query_parser.add_argument('hours_ago', type=float, required=True)
 query_parser.add_argument('until', type=int)
-query_parser.add_argument('category', type=unicode)
+query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
 
 Base = declarative_base()
 events = Table('events', Base.metadata,
                Column('unix_timestamp', db.Integer, index=True),
-               Column('category', db.String(30), index=True),
+               Column('source', db.String(30), index=True),
                Column('description', db.String(1000), index=True)
                )
 Base.metadata.create_all(db.engine)
@@ -48,11 +48,11 @@ class Event(db.Model):
     __table__ = events
     __mapper_args__ = {
         'primary_key': [events.c.unix_timestamp,
-                        events.c.category, events.c.description]
+                        events.c.source, events.c.description]
     }
-    def __init__(self, unix_timestamp, category, description):
+    def __init__(self, unix_timestamp, source, description):
         self.unix_timestamp = unix_timestamp
-        self.category = category
+        self.source = source
         self.description = description
 
 
@@ -66,24 +66,24 @@ class EventList(Resource):
             db_query = db_query.filter(Event.unix_timestamp <= query['until'])
         else:
             db_query = db_query.filter(Event.unix_timestamp >= time.time() - query['hours_ago'] * 3600)
-        #category
-        if query['category'] is not None:
-            category = query['category'].split(',')
-            db_query = db_query.filter(Event.category.in_(category))
+        #source
+        if query['source'] is not None:
+            source = query['source'].split(',')
+            db_query = db_query.filter(Event.source.in_(source))
         # description
         if query['description'] is not None:
             db_query = db_query.filter(Event.description.like("%%%s%%" % query['description']))
         result = db_query.order_by(Event.unix_timestamp.desc()).all()
         converted = [
             {"unix_timestamp": r.unix_timestamp,
-             "category": r.category,
+             "source": r.source,
              "description": r.description} for r in result]
         return converted
 
     def post(self):
         json = json_parser.parse_args()
         try:
-            ev = Event(json['unix_timestamp'], json['category'], json['description'])
+            ev = Event(json['unix_timestamp'], json['source'], json['description'])
             db.session.add(ev)
             db.session.commit()
 
@@ -111,7 +111,7 @@ def healthcheck():
 
 @app.route('/')
 def index():
-    statement = select([distinct(events.c.category)])
+    statement = select([distinct(events.c.source)])
     categories = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
     return render_template('index.html', categories=categories)
 
