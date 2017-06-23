@@ -32,7 +32,7 @@ json_parser.add_argument('start_time', type=int, location='json')
 json_parser.add_argument('end_time', type=int, location='json')
 json_parser.add_argument('source', type=unicode, required=True, location='json')
 json_parser.add_argument('description', type=unicode, required=True, location='json')
-json_parser.add_argument('tags', type=list, required=True, location='json')
+json_parser.add_argument('tags', type=list, location='json')
 
 query_parser = reqparse.RequestParser()
 query_parser.add_argument('hours_ago', type=float, required=True)
@@ -53,21 +53,12 @@ class Event(db.Model):
     source =  db.Column(db.String(30), unique=True)
     description = db.Column(db.String(1000), index=True)
     tags = db.relationship('Tag', secondary=association_table)
-    def __init__(self, start_time, end_time, source, description):
-        self.start_time = start_time
-        self.source = source
-        self.description = description
-        if start_time == None:
-            self.start_time = int(time.time())
 
 class Tag(db.Model):
     __tablename__ = 'tag'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(1000), index=True)
     name = db.Column(db.String(30), unique=True, index=True)
-
-    def __init__(self, name):
-        self.name = name
 
 db.create_all()
 
@@ -109,11 +100,26 @@ class EventList(Resource):
     def post(self):
         json = json_parser.parse_args()
         try:
-            for tag in json['tags']:
-                tg = Tag(tag)
+
+            ev = Event()
+            if json['start_time'] is None:
+                ev.start_time = int(time.time())
+            else:
+                ev.start_time = json['start_time']
+            if json['end_time'] is not None:
+                ev.end_time = json['end_time']
+            if json['source'] is not None:
+                ev.source = json['source']
+            if json['description'] is not None:
+                ev.description = json['description']
+
+            tags = []
+            for tag_name in json['tags']:
+                tg = Tag()
+                tg.name = tag_name
                 db.session.add(tg)
-            db.session.commit()
-            ev = Event(json['start_time'], json['end_time'], json['source'], json['description'])
+
+            ev.tags = tags
             db.session.add(ev)
             db.session.commit()
 
@@ -143,9 +149,11 @@ class EventList(Resource):
                 entry.description = json['description']
             if json['tags'] is not None:
                 tags = []
-                for tag in json['tags']:
-                    tg = Tag(tag)
+                for tag_name in json['tags']:
+                    tg = Tag()
+                    tg.name = tag_name
                     db.session.add(tg)
+
                 entry.tags = tags
         db.session.commit()
 
