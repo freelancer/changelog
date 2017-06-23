@@ -50,7 +50,7 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.Integer, index=True)
     end_time = db.Column(db.Integer, index=True)
-    source =  db.Column(db.String(30), unique=True)
+    source =  db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(1000), index=True)
     tags = db.relationship('Tag', secondary=association_table)
 
@@ -114,18 +114,22 @@ class EventList(Resource):
                 ev.description = json['description']
 
             tags = []
+            tags_in_db = db.session.query(Tag).all()
             for tag_name in json['tags']:
                 tg = Tag()
                 tg.name = tag_name
-                db.session.add(tg)
+                if tg.name not in [t.name for t in tags_in_db]:
+                    db.session.add(tg)
+                    db.session.commit()
 
             ev.tags = tags
             db.session.add(ev)
             db.session.commit()
 
-        except IntegrityError:
+        except IntegrityError as e:
             pass  # This happens if we try to add the same event multiple times
                   # Don't really care about that
+            return 'BAD', 500
         return 'OK', 201
 
     def put(self):
