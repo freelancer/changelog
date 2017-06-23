@@ -18,7 +18,7 @@ Sending events is simple:
 curl http://changelog.awesomecompany.com/api/events \
   -X POST \
   -H 'Content-Type: application/json' \
-  -d '{"unix_timestamp": 1395334488, "category": "misc", "description": "cli test"}'
+  -d '{"unix_timestamp": 1395334488, "description": "cli test"}'
 ```
 
 All four JSON fields are required, and there are no other fields the server understands.
