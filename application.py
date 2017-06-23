@@ -25,7 +25,7 @@ db = SQLAlchemy(app)
 cors = CORS(app, supports_credentials=True)
 
 json_parser = reqparse.RequestParser()
-json_parser.add_argument('unix_timestamp', type=int, required=True, location='json')
+json_parser.add_argument('start_time', type=int, required=True, location='json')
 json_parser.add_argument('source', type=unicode, required=True, location='json')
 json_parser.add_argument('description', type=unicode, required=True, location='json')
 
@@ -37,7 +37,7 @@ query_parser.add_argument('description', type=unicode)
 
 Base = declarative_base()
 events = Table('events', Base.metadata,
-               Column('unix_timestamp', db.Integer, index=True),
+               Column('start_time', db.Integer, index=True),
                Column('source', db.String(30), index=True),
                Column('description', db.String(1000), index=True)
                )
@@ -47,11 +47,11 @@ Base.metadata.create_all(db.engine)
 class Event(db.Model):
     __table__ = events
     __mapper_args__ = {
-        'primary_key': [events.c.unix_timestamp,
+        'primary_key': [events.c.start_time,
                         events.c.source, events.c.description]
     }
-    def __init__(self, unix_timestamp, source, description):
-        self.unix_timestamp = unix_timestamp
+    def __init__(self, start_time, source, description):
+        self.start_time = start_time
         self.source = source
         self.description = description
 
@@ -62,10 +62,10 @@ class EventList(Resource):
         db_query = db.session.query(Event)
         # time
         if query['until'] != -1:
-            db_query = db_query.filter(Event.unix_timestamp >= query['until'] - query['hours_ago'] * 3600)
-            db_query = db_query.filter(Event.unix_timestamp <= query['until'])
+            db_query = db_query.filter(Event.start_time >= query['until'] - query['hours_ago'] * 3600)
+            db_query = db_query.filter(Event.start_time <= query['until'])
         else:
-            db_query = db_query.filter(Event.unix_timestamp >= time.time() - query['hours_ago'] * 3600)
+            db_query = db_query.filter(Event.start_time >= time.time() - query['hours_ago'] * 3600)
         #source
         if query['source'] is not None:
             source = query['source'].split(',')
@@ -73,9 +73,9 @@ class EventList(Resource):
         # description
         if query['description'] is not None:
             db_query = db_query.filter(Event.description.like("%%%s%%" % query['description']))
-        result = db_query.order_by(Event.unix_timestamp.desc()).all()
+        result = db_query.order_by(Event.start_time.desc()).all()
         converted = [
-            {"unix_timestamp": r.unix_timestamp,
+            {"start_time": r.start_time,
              "source": r.source,
              "description": r.description} for r in result]
         return converted
@@ -83,7 +83,7 @@ class EventList(Resource):
     def post(self):
         json = json_parser.parse_args()
         try:
-            ev = Event(json['unix_timestamp'], json['source'], json['description'])
+            ev = Event(json['start_time'], json['source'], json['description'])
             db.session.add(ev)
             db.session.commit()
 
