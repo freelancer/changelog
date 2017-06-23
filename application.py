@@ -8,6 +8,8 @@ from sqlalchemy.exc import IntegrityError
 import settings
 from sqlalchemy.ext.declarative import declarative_base
 from flask.ext.cors import CORS
+import json
+from flask import jsonify
 
 app = Flask(__name__)
 
@@ -29,6 +31,7 @@ json_parser.add_argument('start_time', type=int, location='json')
 json_parser.add_argument('end_time', type=int, location='json')
 json_parser.add_argument('source', type=unicode, required=True, location='json')
 json_parser.add_argument('description', type=unicode, required=True, location='json')
+json_parser.add_argument('tags', type=list, required=True, location='json')
 
 query_parser = reqparse.RequestParser()
 query_parser.add_argument('hours_ago', type=float, required=True)
@@ -36,16 +39,19 @@ query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
 
+association_table = Table('association', db.Model.metadata,
+    Column('event_id', db.Integer, db.ForeignKey('event.id')),
+    Column('tag_id', db.Integer, db.ForeignKey('tag.id'))
+)
 
 class Event(db.Model):
     __tablename__ = 'event'
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.Integer, index=True)
     end_time = db.Column(db.Integer, index=True)
-    source =  db.Column(db.String(30), index=True)
+    source =  db.Column(db.String(30), unique=True)
     description = db.Column(db.String(1000), index=True)
-    tags = db.relationship('Tag', backref='event',
-                                lazy='dynamic')
+    tags = db.relationship('Tag', secondary=association_table)
     def __init__(self, start_time, end_time, source, description):
         self.start_time = start_time
         self.source = source
@@ -56,12 +62,11 @@ class Event(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tag'
     id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
     description = db.Column(db.String(1000), index=True)
     name = db.Column(db.String(30), unique=True, index=True)
-    def __init__(self, description, name):
+
+    def __init__(self, name):
         self.name = name
-        self.description = description
 
 db.create_all()
 
@@ -94,6 +99,10 @@ class EventList(Resource):
     def post(self):
         json = json_parser.parse_args()
         try:
+            for tag in json['tags']:
+                tg = Tag(tag)
+                db.session.add(tg)
+            db.session.commit()
             ev = Event(json['start_time'], json['end_time'], json['source'], json['description'])
             db.session.add(ev)
             db.session.commit()
@@ -105,6 +114,18 @@ class EventList(Resource):
 
 
 api.add_resource(EventList, '/api/events')
+
+class TagList(Resource):
+    def get(self):
+        result = db.session.query(Tag).all()
+        converted = [
+            {"id": r.id,
+             "name": r.name,
+             "description": r.description} for r in result]
+        return converted
+
+api.add_resource(TagList, '/api/tags')
+
 
 # Healthcheck, supposing that there is at least one element in the database.
 @app.route('/healthcheck')
