@@ -73,7 +73,13 @@ class EventList(Resource):
             {"start_time": r.start_time,
              "end_time": r.end_time,
              "source": r.source,
-             "description": r.description} for r in result]
+             "description": r.description,
+             "tags": [ {
+                "id":t.id,
+                "description":t.description,
+                "name":t.name
+                } for t in r.tags]
+            } for r in result]
         return converted
 
         # time
