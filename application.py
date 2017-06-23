@@ -36,22 +36,16 @@ query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
 
-Base = declarative_base()
-events = Table('events', Base.metadata,
-               Column('start_time', db.Integer, index=True),
-               Column('end_time', db.Integer, index=True),
-               Column('source', db.String(30), index=True),
-               Column('description', db.String(1000), index=True)
-               )
-Base.metadata.create_all(db.engine)
-
 
 class Event(db.Model):
-    __table__ = events
-    __mapper_args__ = {
-        'primary_key': [events.c.start_time,
-                        events.c.source, events.c.description]
-    }
+    __tablename__ = 'event'
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.Integer, index=True)
+    end_time = db.Column(db.Integer, index=True)
+    source =  db.Column(db.String(30), unique=True)
+    description = db.Column(db.String(1000), index=True)
+    tags = db.relationship('Tag', backref='event',
+                                lazy='dynamic')
     def __init__(self, start_time, end_time, source, description):
         self.start_time = start_time
         self.source = source
@@ -59,7 +53,22 @@ class Event(db.Model):
         if start_time == None:
             self.start_time = int(time.time())
 
+class Tag(db.Model):
+    __tablename__ = 'tag'
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
+    description = db.Column(db.String(1000), index=True)
+    name = db.Column(db.String(30), unique=True, index=True)
+    def __init__(self, description, name):
+        self.name = name
+        self.description = description
 
+db.create_all()
+from sqlalchemy.schema import CreateTable
+print(CreateTable(Event.__table__))
+print Event.__table__.indexes
+print(CreateTable(Tag.__table__))
+print Tag.__table__.indexes
 class EventList(Resource):
     def get(self):
         query = query_parser.parse_args()
@@ -116,7 +125,7 @@ def healthcheck():
 
 @app.route('/')
 def index():
-    statement = select([distinct(events.c.source)])
+    statement = select([distinct(Event.source)])
     categories = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
     return render_template('index.html', categories=categories)
 
