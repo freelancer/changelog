@@ -76,6 +76,15 @@ class EventList(Resource):
     def get(self):
         query = query_parser.parse_args()
         db_query = db.session.query(Event)
+
+        result = db_query.all()
+        converted = [
+            {"start_time": r.start_time,
+             "end_time": r.end_time,
+             "source": r.source,
+             "description": r.description} for r in result]
+        return converted
+
         # time
         if query['until'] != -1:
             db_query = db_query.filter(Event.start_time >= query['until'] - query['hours_ago'] * 3600)
