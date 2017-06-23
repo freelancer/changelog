@@ -42,7 +42,7 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.Integer, index=True)
     end_time = db.Column(db.Integer, index=True)
-    source =  db.Column(db.String(30), unique=True)
+    source =  db.Column(db.String(30), index=True)
     description = db.Column(db.String(1000), index=True)
     tags = db.relationship('Tag', backref='event',
                                 lazy='dynamic')
@@ -64,10 +64,7 @@ class Tag(db.Model):
         self.description = description
 
 db.create_all()
-from sqlalchemy.schema import CreateTable
-print(CreateTable(Event.__table__))
-print Event.__table__.indexes
-print(CreateTable(Tag.__table__))
+
 print Tag.__table__.indexes
 class EventList(Resource):
     def get(self):
