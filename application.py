@@ -25,7 +25,8 @@ db = SQLAlchemy(app)
 cors = CORS(app, supports_credentials=True)
 
 json_parser = reqparse.RequestParser()
-json_parser.add_argument('start_time', type=int, required=True, location='json')
+json_parser.add_argument('start_time', type=int, location='json')
+json_parser.add_argument('end_time', type=int, location='json')
 json_parser.add_argument('source', type=unicode, required=True, location='json')
 json_parser.add_argument('description', type=unicode, required=True, location='json')
 
@@ -38,6 +39,7 @@ query_parser.add_argument('description', type=unicode)
 Base = declarative_base()
 events = Table('events', Base.metadata,
                Column('start_time', db.Integer, index=True),
+               Column('end_time', db.Integer, index=True),
                Column('source', db.String(30), index=True),
                Column('description', db.String(1000), index=True)
                )
@@ -50,10 +52,12 @@ class Event(db.Model):
         'primary_key': [events.c.start_time,
                         events.c.source, events.c.description]
     }
-    def __init__(self, start_time, source, description):
+    def __init__(self, start_time, end_time, source, description):
         self.start_time = start_time
         self.source = source
         self.description = description
+        if start_time == None:
+            self.start_time = int(time.time())
 
 
 class EventList(Resource):
@@ -76,6 +80,7 @@ class EventList(Resource):
         result = db_query.order_by(Event.start_time.desc()).all()
         converted = [
             {"start_time": r.start_time,
+             "end_time": r.end_time,
              "source": r.source,
              "description": r.description} for r in result]
         return converted
@@ -83,7 +88,7 @@ class EventList(Resource):
     def post(self):
         json = json_parser.parse_args()
         try:
-            ev = Event(json['start_time'], json['source'], json['description'])
+            ev = Event(json['start_time'], json['end_time'], json['source'], json['description'])
             db.session.add(ev)
             db.session.commit()
 
