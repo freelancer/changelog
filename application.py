@@ -27,6 +27,7 @@ db = SQLAlchemy(app)
 cors = CORS(app, supports_credentials=True)
 
 json_parser = reqparse.RequestParser()
+json_parser.add_argument('id', type=int, location='json')
 json_parser.add_argument('start_time', type=int, location='json')
 json_parser.add_argument('end_time', type=int, location='json')
 json_parser.add_argument('source', type=unicode, required=True, location='json')
@@ -112,6 +113,9 @@ class EventList(Resource):
                   # Don't really care about that
         return 'OK', 201
 
+    # def put(self):
+
+
 
 api.add_resource(EventList, '/api/events')
 
@@ -123,6 +127,17 @@ class TagList(Resource):
              "name": r.name,
              "description": r.description} for r in result]
         return converted
+
+
+    def put(self):
+        json = json_parser.parse_args()
+        result = db.session.query(Tag).filter(Tag.id == json['id'])
+        for entry in result:
+            if json['name'] is not None:
+                entry.name = json['name']
+            if json['description'] is not None:
+                entry.name = json['description']
+        db.session.commit()
 
 api.add_resource(TagList, '/api/tags')
 
