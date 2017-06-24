@@ -28,7 +28,7 @@
                 var state = $.bbq.getState();
                 $scope.hoursAgo = parseInt(state.hours_ago, 10) || 1;
                 $scope.until = parseInt(state.until, 10) || -1;
-                $scope.category = checkboxList((state.category ? state.category.split(',') : []));
+                $scope.source = checkboxList((state.source ? state.source.split(',') : []));
                 $scope.description = state.description || '';
                 $scope.isDashboard = parseInt(state.is_dashboard, 10) || 0;
                 if ($scope.until === -1) {
@@ -65,7 +65,7 @@
                     fields = {
                         hours_ago: 'hoursAgo',
                         until: same,
-                        category: same,
+                        source: same,
                         description: same,
                         is_dashboard: 'isDashboard'
                     },
@@ -128,7 +128,7 @@
             $scope.updateState(true);
 
             // Checkboxes -> list
-            checkboxList($scope.category);
+            checkboxList($scope.source);
 
             // Time-range - radiobutton
             // buttons -> (until, hoursAgo)
