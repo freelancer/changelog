@@ -128,14 +128,14 @@ class EventList(Resource):
                     "tags" : [{
                         "id" : tag_id,
                         "description" : tag_description,
-                        "tag_name" : tag_name,
+                        "name" : tag_name,
                     }]
                 }
             else:
                 events[id]["tags"].append({
                         "id" : tag_id,
                         "description" : tag_description,
-                        "tag_name" : tag_name,
+                        "name" : tag_name,
                 })
 
 
