@@ -10,12 +10,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from flask.ext.cors import CORS
 import json
 from flask import jsonify
+from sqlalchemy import or_, and_
 
 app = Flask(__name__)
 
 if settings.USE_SENTRY:
     app.config['SENTRY_DSN'] = settings.SENTRY_DSN
     sentry = Sentry(app)
+
+app.config['SQLALCHEMY_ECHO'] = True
 
 try:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+settings.DB_PATH
@@ -35,7 +38,8 @@ json_parser.add_argument('description', type=unicode, required=True, location='j
 json_parser.add_argument('tags', type=list, location='json')
 
 query_parser = reqparse.RequestParser()
-query_parser.add_argument('hours_ago', type=float, required=True)
+query_parser.add_argument('start_time', type=int)
+query_parser.add_argument('end_time', type=int)
 query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
@@ -50,8 +54,8 @@ association_table = Table('association', db.Model.metadata,
 class Event(db.Model):
     __tablename__ = 'event'
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.Integer, index=True)
-    end_time = db.Column(db.Integer, index=True)
+    start_time = db.Column(db.Integer, index=True, nullable=False)
+    end_time = db.Column(db.Integer, index=True, nullable=False)
     source =  db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(1000), index=True)
     tags = db.relationship('Tag', secondary=association_table)
@@ -60,7 +64,7 @@ class Tag(db.Model):
     __tablename__ = 'tag'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(1000), index=True)
-    name = db.Column(db.String(30), unique=True, index=True)
+    name = db.Column(db.String(30), unique=True, index=True, nullable=False)
 
 db.create_all()
 
@@ -76,6 +80,22 @@ class EventList(Resource):
             where(event.c.id == association_table.c.event_id).\
             where(Tag.id == association_table.c.tag_id)
 
+        start_time = int(time.time()) - 86400 # 24 hours ago
+        end_time = int(time.time()) # now
+
+        if query.get('start_time') is not None:
+            start_time = query['start_time']
+        if query.get('end_time') is not None:
+            end_time = query['end_time']
+
+        statement = statement.where(
+            (and_(Event.start_time >= start_time, Event.end_time <= end_time)).self_group() | # both inside
+            (and_(Event.start_time <= start_time, Event.end_time >= start_time)).self_group() | # start before
+            (and_(Event.start_time <= end_time, Event.end_time >= end_time)).self_group() # both inside
+        )
+
+        if query['source'] is not None:
+            statement = statement.where(Event.source.in_(source))
         if query['source'] is not None:
             statement = statement.where(Event.source.in_(source))
         if query['description'] is not None:
@@ -130,6 +150,8 @@ class EventList(Resource):
             ev.start_time = json['start_time']
         if json['end_time'] is not None:
             ev.end_time = json['end_time']
+        else:
+            ev.end_time = ev.start_time
         if json['source'] is not None:
             ev.source = json['source']
         if json['description'] is not None:
