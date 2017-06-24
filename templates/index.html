@@ -116,17 +116,17 @@
             <thead>
             <tr>
                 <th>Time</th>
-                <th>Source</th>
                 <th>Tags</th>
                 <th>Description</th>
+                <th>Source</th>
             </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="event in events">
                     <td>{{ event.start_time*1000|date:'yyyy-MM-dd HH:mm:ss' }}</td>
-                    <td>{{ event.source }}</td>
                     <td><span ng-repeat="tag in event.tags" class="label label-default">{{tag.name}}</span></td>
                     <td ng-bind-html="event.description|unsafeHtml"></td>
+                     <td>{{ event.source }}</td>
                 </tr>
             </tbody>
         </table>
