@@ -26,7 +26,6 @@
             // Current URL -> Inputs
             function applyHash() {
                 var state = $.bbq.getState();
-                $scope.criticality = checkboxList(state.criticality ? state.criticality.split(',') : []);
                 $scope.hoursAgo = parseInt(state.hours_ago, 10) || 1;
                 $scope.until = parseInt(state.until, 10) || -1;
                 $scope.category = checkboxList((state.category ? state.category.split(',') : []));
@@ -64,7 +63,6 @@
                     same = undefined,
                     // field name in the api -> field name in $scope
                     fields = {
-                        criticality: same,
                         hours_ago: 'hoursAgo',
                         until: same,
                         category: same,
@@ -130,7 +128,6 @@
             $scope.updateState(true);
 
             // Checkboxes -> list
-            checkboxList($scope.criticality);
             checkboxList($scope.category);
 
             // Time-range - radiobutton

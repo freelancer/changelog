@@ -29,27 +29,6 @@
             {{ percent }}
         </div>
         <form id="filters" class="form-horizontal" ng-show="!isDashboard">
-            <div class="col-md-2">
-                <fieldset>
-                    <legend>Criticality</legend>
-                    <div class="form-group">
-                        <div class="checkbox" ng-repeat="current in ['5', '4', '3', '2', '1']">
-                            <label>
-                                <input type="checkbox" name="criticality"
-                                       ng-checked="criticality.isChecked(current)"
-                                       ng-click="criticality.toggle(current)">
-                                <span ng-bind="current"></span>
-                                <span ng-if="current === '5'">(Most critical)</span>
-                                <span ng-if="current === '1'">(Least critical)</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-default" type="button" ng-click="criticalities.clear()">Show all criticalities</button>
-                    </div>
-                </fieldset>
-            </div>
-
             <div class="col-md-3">
                 <fieldset>
                     <legend>Time-range</legend>
@@ -136,7 +115,6 @@
         <table id="events" class="table table-bordered table-hover table-condensed" ng-show="!loading">
             <thead>
             <tr>
-                <th>Criticality</th>
                 <th>Category</th>
                 <th>Time</th>
                 <th>Description</th>
@@ -144,7 +122,6 @@
             </thead>
             <tbody>
                 <tr ng-repeat="event in events">
-                    <td>{{ event.criticality }}</td>
                     <td>{{ event.category }}</td>
                     <td>{{ event.unix_timestamp*1000|date:'yyyy-MM-dd HH:mm:ss' }}</td>
                     <td ng-bind-html="event.description|unsafeHtml"></td>
