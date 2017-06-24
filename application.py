@@ -261,7 +261,9 @@ def healthcheck():
 def index():
     statement = select([distinct(Event.source)])
     sources = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
-    return render_template('index.html', sources=sources)
+    statement = select([distinct(Tag.name)])
+    tag_names = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
+    return render_template('index.html', sources=sources, tag_names=tag_names)
 
 
 if __name__ == '__main__':
