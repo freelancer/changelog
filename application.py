@@ -124,6 +124,7 @@ class EventList(Resource):
                     "start_time": start_time,
                     "end_time": end_time,
                     "source": source,
+                    "description": description,
                     "tags" : [{
                         "id" : tag_id,
                         "description" : tag_description,
