@@ -158,19 +158,18 @@ class EventList(Resource):
             ev.description = json['description']
 
         tags = []
-        tags_in_db = db.session.query(Tag).all() # ['matchmaking','umer']
+        tags_in_db = db.session.query(Tag).filter(Tag.name.in_(json['tags'])).all() # ['matchmaking','umer']
         for post_tag in json['tags']:
-            tag_found = False
             for db_tag in tags_in_db:
-                if db_tag.name == post_tag:
-                    tag_found = True
-                tags.append(db_tag)
-            
-            if not tag_found:
+                if post_tag == db_tag.name:
+                    tags.append(db_tag)
+                    break
+            else:
                 tg = Tag()
                 tg.name = post_tag
                 db.session.add(tg)
                 db.session.commit()
+                tags.append(tg)
 
         ev.tags = tags
         db.session.add(ev)
@@ -199,19 +198,18 @@ class EventList(Resource):
                 entry.description = json['description']
             if json['tags'] is not None:
                 tags = []
-                tags_in_db = db.session.query(Tag).all() # ['matchmaking','umer']
+                tags_in_db = db.session.query(Tag).filter(Tag.name.in_(json['tags'])).all() # ['matchmaking','umer']
                 for post_tag in json['tags']:
-                    tag_found = False
                     for db_tag in tags_in_db:
-                        if db_tag.name == post_tag:
-                            tag_found = True
-                        tags.append(db_tag)
-                    
-                    if not tag_found:
+                        if post_tag == db_tag.name:
+                            tags.append(db_tag)
+                            break
+                    else:
                         tg = Tag()
                         tg.name = post_tag
                         db.session.add(tg)
                         db.session.commit()
+                        tags.append(tg)
 
                 entry = tags
 
