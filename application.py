@@ -260,8 +260,8 @@ def healthcheck():
 @app.route('/')
 def index():
     statement = select([distinct(Event.source)])
-    categories = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
-    return render_template('index.html', categories=categories)
+    sources = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
+    return render_template('index.html', sources=sources)
 
 
 if __name__ == '__main__':
