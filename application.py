@@ -39,6 +39,8 @@ query_parser.add_argument('hours_ago', type=float, required=True)
 query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
+query_parser.add_argument('include_tags', type=unicode, action='append')
+query_parser.add_argument('exclude_tags', type=unicode, action='append')
 
 association_table = Table('association', db.Model.metadata,
     Column('event_id', db.Integer, db.ForeignKey('event.id')),
@@ -66,42 +68,57 @@ print Tag.__table__.indexes
 class EventList(Resource):
     def get(self):
         query = query_parser.parse_args()
-        db_query = db.session.query(Event)
 
-        result = db_query.all()
-        converted = [
-            {"start_time": r.start_time,
-             "end_time": r.end_time,
-             "source": r.source,
-             "description": r.description,
-             "tags": [ {
-                "id":t.id,
-                "description":t.description,
-                "name":t.name
-                } for t in r.tags]
-            } for r in result]
-        return converted
+        event = Event.__table__
 
-        # time
-        if query['until'] != -1:
-            db_query = db_query.filter(Event.start_time >= query['until'] - query['hours_ago'] * 3600)
-            db_query = db_query.filter(Event.start_time <= query['until'])
-        else:
-            db_query = db_query.filter(Event.start_time >= time.time() - query['hours_ago'] * 3600)
-        #source
+        statement = select([event, Tag]).\
+            select_from(event.join(association_table)).\
+            where(event.c.id == association_table.c.event_id).\
+            where(Tag.id == association_table.c.tag_id)
+
         if query['source'] is not None:
-            source = query['source'].split(',')
-            db_query = db_query.filter(Event.source.in_(source))
-        # description
+            statement = statement.where(Event.source.in_(source))
         if query['description'] is not None:
-            db_query = db_query.filter(Event.description.like("%%%s%%" % query['description']))
-        result = db_query.order_by(Event.start_time.desc()).all()
-        converted = [
-            {"start_time": r.start_time,
-             "end_time": r.end_time,
-             "source": r.source,
-             "description": r.description} for r in result]
-        return converted
+            statement = statement.where(Event.description.like("%%%s%%" % query['description']))
+        if query['include_tags'] is not None:
+            statement = statement.where(Tag.name.in_(query['include_tags']))
+        if query['exclude_tags'] is not None:
+            statement = statement.where(~Tag.name.in_(query['exclude_tags']))
+
+
+        events = {}
+        result = db.engine.execute(statement).fetchall()
+
+        for row in result:
+            id = row[0]
+            start_time = row[1]
+            end_time = row[2]
+            source = row[3]
+            description = row[4]
+            tag_id = row[5]
+            tag_description = row[6]
+            tag_name = row[7]
+            if events.get(id) == None:
+                events[id] = {
+                    "id": id,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "source": source,
+                    "tags" : [{
+                        "id" : tag_id,
+                        "description" : tag_description,
+                        "tag_name" : tag_name,
+                    }]
+                }
+            else:
+                events[id]["tags"].append({
+                        "id" : tag_id,
+                        "description" : tag_description,
+                        "tag_name" : tag_name,
+                })
+
+
+        return events
 
     def post(self):
         json = json_parser.parse_args()
