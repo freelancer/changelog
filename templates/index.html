@@ -68,10 +68,10 @@
             <fieldset>
                     <legend>Tags</legend>
                     <div class="controls category-container">
-                        {% for current in tag_names %}
+                        {% for current in tags%}
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="source" value="{{current}}"
+                                <input type="checkbox" name="tag" value="{{current}}"
                                         ng-checked="tag.isChecked('{{ current }}')"
                                         ng-click="tag.toggle('{{ current }}')">{{current}}
                             </label>

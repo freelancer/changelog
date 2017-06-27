@@ -29,6 +29,7 @@
                 $scope.hoursAgo = parseInt(state.hours_ago, 10) || 1;
                 $scope.until = parseInt(state.until, 10) || -1;
                 $scope.source = checkboxList((state.source ? state.source.split(',') : []));
+                $scope.tag = checkboxList((state.tag ? state.tag.split(',') : []));
                 $scope.description = state.description || '';
                 $scope.isDashboard = parseInt(state.is_dashboard, 10) || 0;
                 if ($scope.until === -1) {
@@ -67,6 +68,7 @@
                         until: same,
                         source: same,
                         description: same,
+                        tag: same,
                         is_dashboard: 'isDashboard'
                     },
                     field,
@@ -129,6 +131,7 @@
 
             // Checkboxes -> list
             checkboxList($scope.source);
+            checkboxList($scope.tag);
 
             // Time-range - radiobutton
             // buttons -> (until, hoursAgo)

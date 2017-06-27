@@ -43,9 +43,7 @@ query_parser.add_argument('end_time', type=int)
 query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
 query_parser.add_argument('description', type=unicode)
-query_parser.add_argument('include_tags', type=unicode, action='append')
-query_parser.add_argument('exclude_tags', type=unicode, action='append')
-
+query_parser.add_argument('tag', type=unicode)
 association_table = Table('association', db.Model.metadata,
     Column('event_id', db.Integer, db.ForeignKey('event.id')),
     Column('tag_id', db.Integer, db.ForeignKey('tag.id'))
@@ -99,10 +97,9 @@ class EventList(Resource):
             statement = statement.where(Event.source.in_(source))
         if query['description'] is not None:
             statement = statement.where(Event.description.like("%%%s%%" % query['description']))
-        if query['include_tags'] is not None:
-            statement = statement.where(Tag.name.in_(query['include_tags']))
-        if query['exclude_tags'] is not None:
-            statement = statement.where(~Tag.name.in_(query['exclude_tags']))
+        if query['tag'] is not None:
+            tag = map(str, query['tag'].split(','))
+            statement = statement.where(Tag.name.in_(tag))
 
 
         events = {}
@@ -262,7 +259,7 @@ def index():
     sources = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
     statement = select([distinct(Tag.name)])
     tag_names = [str(entry[0]) for entry in db.engine.execute(statement).fetchall()]
-    return render_template('index.html', sources=sources, tag_names=tag_names)
+    return render_template('index.html', sources=sources, tags=tag_names)
 
 
 if __name__ == '__main__':
