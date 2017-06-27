@@ -95,8 +95,7 @@ class EventList(Resource):
         )
 
         if query['source'] is not None:
-            statement = statement.where(Event.source.in_(source))
-        if query['source'] is not None:
+            source = map(str, query['source'].split(','))
             statement = statement.where(Event.source.in_(source))
         if query['description'] is not None:
             statement = statement.where(Event.description.like("%%%s%%" % query['description']))
