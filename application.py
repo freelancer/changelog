@@ -42,6 +42,7 @@ query_parser.add_argument('start_time', type=int)
 query_parser.add_argument('end_time', type=int)
 query_parser.add_argument('until', type=int)
 query_parser.add_argument('source', type=unicode)
+query_parser.add_argument('hours_ago', type=int)
 query_parser.add_argument('description', type=unicode)
 query_parser.add_argument('tag', type=unicode)
 association_table = Table('association', db.Model.metadata,
@@ -66,7 +67,6 @@ class Tag(db.Model):
 
 db.create_all()
 
-print Tag.__table__.indexes
 class EventList(Resource):
     def get(self):
         query = query_parser.parse_args()
@@ -78,20 +78,13 @@ class EventList(Resource):
             where(event.c.id == association_table.c.event_id).\
             where(Tag.id == association_table.c.tag_id)
 
-        start_time = int(time.time()) - 86400 # 24 hours ago
-        end_time = int(time.time()) # now
-
-        if query.get('start_time') is not None:
-            start_time = query['start_time']
-        if query.get('end_time') is not None:
-            end_time = query['end_time']
-
-        statement = statement.where(
-            (and_(Event.start_time >= start_time, Event.end_time <= end_time)).self_group() | # both inside
-            (and_(Event.start_time <= start_time, Event.end_time >= start_time)).self_group() | # start before
-            (and_(Event.start_time <= end_time, Event.end_time >= end_time)).self_group() # both inside
-        )
-
+        if query['until'] != -1:
+            statement = statement.where(
+              (and_(Event.start_time >= query['until'] - query['hours_ago'] * 3600, Event.start_time <= query['until'])))
+        else:
+            statement = statement.where(
+              (and_(Event.start_time >= time.time() - query['hours_ago'] * 3600))
+            )
         if query['source'] is not None:
             source = map(str, query['source'].split(','))
             statement = statement.where(Event.source.in_(source))
