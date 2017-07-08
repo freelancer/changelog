@@ -1,0 +1,14 @@
+{
+  "name": "Centralised Changelog",
+  "short_name": "Changelog",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff",
+  "theme_color": "#139ff0",
+  "icons": [{
+    "src": "/assets/icon.png",
+    "type": "image/png",
+    "sizes": "512x512"
+  }]
+}

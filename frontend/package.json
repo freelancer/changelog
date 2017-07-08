@@ -1,0 +1,47 @@
+{
+  "name": "centralised-changelog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "eslint . && preact test",
+    "start": "if-env NODE_ENV=production && npm run -s serve || npm run -s dev",
+    "build": "preact build",
+    "serve": "preact build && preact serve",
+    "dev": "preact watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "britecharts": "^1.7.2",
+    "d3-selection": "^1.1.0",
+    "history": "^4.6.2",
+    "if-env": "^1.0.0",
+    "localforage": "^1.5.0",
+    "moment": "^2.18.1",
+    "preact": "^8.1.0",
+    "preact-compat": "^3.16.0",
+    "prop-types": "^15.5.10",
+    "react-redux": "^5.0.5",
+    "react-router": "^4.1.1",
+    "react-router-dom": "^4.1.1",
+    "react-router-redux": "^4.0.8",
+    "react-select": "0.9.1",
+    "react-table": "^6.4.0",
+    "redux": "^3.7.0",
+    "redux-devtools-extension": "^2.13.2",
+    "redux-observable": "^0.14.1",
+    "redux-persist": "^4.8.0",
+    "rxjs": "^5.4.1",
+    "styled-components": "^2.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.1",
+    "eslint-config-synacor": "^1.0.0",
+    "eslint-plugin-import": "^2.3.0",
+    "eslint-plugin-jsx-a11y": "^5.0.3",
+    "preact-cli": "^1.1.2"
+  }
+}
