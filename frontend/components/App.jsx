@@ -24,7 +24,7 @@ export default class App extends Component {
           <Router history={history}>
             <div>
               <Toolbar>
-                <h1>Centralised Changelog</h1>
+                <h1>What did we do?</h1>
               </Toolbar>
               <Route path="/" component={Home} />
             </div>

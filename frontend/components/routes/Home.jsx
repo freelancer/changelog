@@ -12,13 +12,13 @@ const Container = styled.div`
 
 export default class Home extends Component {
   componentWillMount() {
-    fetch('http://localhost:5000/api/tags')
+    fetch('http://127.0.0.1:5000/api/tags')
       .then(response => response.json())
       .then((data) => {
         store.dispatch(tagsFetched(data));
       });
 
-    fetch('http://localhost:5000/api/events?hours_ago=100000')
+    fetch('http://127.0.0.1:5000/api/events?hours_ago=720&until=-1')
       .then(response => response.json())
       .then((data) => {
         store.dispatch(eventsFetched(data));
