@@ -74,9 +74,7 @@ class EventList(Resource):
         event = Event.__table__
 
         statement = select([event, Tag]).\
-            select_from(event.join(association_table)).\
-            where(event.c.id == association_table.c.event_id).\
-            where(Tag.id == association_table.c.tag_id)
+            select_from(event.outerjoin(association_table).outerjoin(Tag))
 
         if query['until'] != -1:
             statement = statement.where(
@@ -148,20 +146,22 @@ class EventList(Resource):
             ev.description = json['description']
 
         tags = []
-        tags_in_db = db.session.query(Tag).filter(Tag.name.in_(json['tags'])).all() # ['matchmaking','umer']
-        for post_tag in json['tags']:
-            for db_tag in tags_in_db:
-                if post_tag == db_tag.name:
-                    tags.append(db_tag)
-                    break
-            else:
-                tg = Tag()
-                tg.name = post_tag
-                db.session.add(tg)
-                db.session.commit()
-                tags.append(tg)
+        if json['tags']:
+            tags_in_db = db.session.query(Tag).filter(Tag.name.in_(json['tags'])).all() # ['matchmaking','umer']
+            for post_tag in json['tags']:
+                for db_tag in tags_in_db:
+                    if post_tag == db_tag.name:
+                        tags.append(db_tag)
+                        break
+                else:
+                    tg = Tag()
+                    tg.name = post_tag
+                    db.session.add(tg)
+                    db.session.commit()
+                    tags.append(tg)
 
-        ev.tags = tags
+            ev.tags = tags
+
         db.session.add(ev)
         db.session.commit()
 
