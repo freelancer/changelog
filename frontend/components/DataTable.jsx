@@ -22,12 +22,19 @@ class DataTable extends Component {
       accessor: 'source',
       Header: 'Source',
     }, {
+      accessor: 'name',
+      Header: 'Name',
+    }, {
       id: 'tags',
       Header: 'Tags',
       accessor: row => row.tags.map(tag => tag.name).join(', '),
     }, {
       accessor: 'description',
       Header: 'Description',
+    }, {
+      id: 'links',
+      Header: 'Links',
+      accessor: row => row.links.join(', '),
     }];
   }
 

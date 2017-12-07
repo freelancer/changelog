@@ -18,7 +18,7 @@
                 loading: function (cb) { $rootScope.$on(loading, cb); },
                 success: function (cb) {
                     $rootScope.$on(success, function (e, json) {
-                        cb(json);
+                        cb(json.result);
                     });
                 }
             };

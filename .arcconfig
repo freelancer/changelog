@@ -1,0 +1,4 @@
+{
+    "phabricator.uri": "https://phabricator.tools.flnltd.com",
+    "base": "git:merge-base(origin/master), arc:upstream, arc:prompt"
+}

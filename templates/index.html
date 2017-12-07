@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Changelog :)</title>
+    <title>Changelog</title>
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
@@ -96,15 +96,15 @@
                         {% endfor %}
                     </div>
                     <button id="clear-source-filter" class="btn btn-default col-md-12" type="button"
-                            ng-click="source.clear()">Show all categories</button>
+                            ng-click="source.clear()">Show all Sources</button>
                 </fieldset>
             </div>
             <div class="col-md-3">
               <fieldset>
-                <legend>Description</legend>
+                <legend>Name or Description</legend>
                 <div class="form-group">
                   Contains:
-                  <input type='text' class="form-control" ng-model="description" style="display:inline; width:80%;" ng-debounce>
+                  <input type='text' class="form-control" ng-model="keyword" style="display:inline; width:80%;" ng-debounce>
                 </div>
               </fieldset>
             </div>
@@ -115,13 +115,14 @@
                     <div>
                         <p id="permalink-code">{{ permalink }}</p>
                     </div>
-                    <button class="btn btn-default" ng-click="isDashboard = 1">Dashboard view</button>
+                    <button type="button" class="btn btn-default" ng-click="isDashboard = 1">Dashboard view</button>
                 </fieldset>
                 {% endraw %}
             </div>
         </form>
     </div>
     {% raw %}
+    <br/>
     <div class="row-fluid" ng-controller="EventListController">
         <div ng-show="loading" class="col-md-offset-5">
             <h3>
@@ -134,16 +135,20 @@
             <tr>
                 <th>Time</th>
                 <th>Tags</th>
-                <th>Description</th>
                 <th>Source</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Links</th>
             </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="event in events">
                     <td>{{ event.start_time*1000|date:'yyyy-MM-dd HH:mm:ss' }}</td>
                     <td><span ng-repeat="tag in event.tags" class="label label-default">{{tag.name}}</span></td>
+                    <td>{{ event.source }}</td>
+                    <td ng-bind-html="event.name|unsafeHtml"></td>
                     <td ng-bind-html="event.description|unsafeHtml"></td>
-                     <td>{{ event.source }}</td>
+                    <td><span ng-repeat="link in event.links"><div><a href="{{link}}">{{link}}</a></div></span></td>
                 </tr>
             </tbody>
         </table>

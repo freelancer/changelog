@@ -67,7 +67,7 @@
                         hours_ago: 'hoursAgo',
                         until: same,
                         source: same,
-                        description: same,
+                        keyword: 'keyword',
                         tag: same,
                         is_dashboard: 'isDashboard'
                     },
